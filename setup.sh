@@ -52,7 +52,7 @@ PUBLIC_IP=$(aws ec2 describe-instances  --instance-ids $INSTANCE_ID |
 echo "New instance $INSTANCE_ID @ $PUBLIC_IP"
 
 echo "deploying code to production"
-scp -i $KEY_PEM -o "StrictHostKeyChecking=no" -o "ConnectionAttempts=60" app.py ubuntu@$PUBLIC_IP:/home/ubuntu/
+scp -i $KEY_PEM -o "StrictHostKeyChecking=no" -o "ConnectionAttempts=60" app.py setup_redis.sh ubuntu@$PUBLIC_IP:/home/ubuntu/
 
 echo "setup production environment"
 ssh -i $KEY_PEM -o "StrictHostKeyChecking=no" -o "ConnectionAttempts=10" ubuntu@$PUBLIC_IP <<EOF
@@ -62,7 +62,9 @@ ssh -i $KEY_PEM -o "StrictHostKeyChecking=no" -o "ConnectionAttempts=10" ubuntu@
     sudo apt install redis-server -y
     pip3 install redis
     redis-server &
-    sleep 8
+    
+    chmod +x setup_redis.sh
+    ./setup_redis.sh
     
     export FLASK_APP=app.py
     nohup flask run --host 0.0.0.0 &>/dev/null &
